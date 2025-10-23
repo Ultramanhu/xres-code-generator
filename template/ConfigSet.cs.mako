@@ -83,7 +83,6 @@ ${pb_loader.CsNamespaceBegin(global_package)}
         public void Clear() {
 %   for code_index in loader.code.indexes:
              ${code_index.camelname}Data.Clear();
-<%   last_code_index = code_index %>\
 %   endfor
         }
 
@@ -106,13 +105,13 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             int count = table.${loader.get_camel_code_field_name()}.Count;
             for (var i = 0; i < count; i++)
             {
-                ${last_code_index.camelname}ValueItemType itemInfo = ConfigSetManager.Instance.Parse<${last_code_index.camelname}ValueItemType>(table.${loader.get_camel_code_field_name()}[i].ToByteArray(), ${last_code_index.camelname}ValueItemType.Parser);
+                ${loader.get_cs_pb_inner_class_name()} itemInfo = ConfigSetManager.Instance.Parse<${loader.get_cs_pb_inner_class_name()}>(table.${loader.get_camel_code_field_name()}[i].ToByteArray(), ${loader.get_cs_pb_inner_class_name()}.Parser);
                 if (itemInfo == null) continue;
                 MergeData(itemInfo);
             }
         }
 
-        protected void MergeData(${last_code_index.camelname}ValueItemType itemInfo) {
+        protected void MergeData(${loader.get_cs_pb_inner_class_name()} itemInfo) {
             if (itemInfo == null) return;
 %   for code_index in loader.code.indexes:
 
