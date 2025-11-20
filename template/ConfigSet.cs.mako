@@ -50,6 +50,8 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 
         public static ${loader.get_cs_class_name()} Instance => _instance ??= new ${loader.get_cs_class_name()}();
 
+        public bool Loaded { get; protected set; } = false;
+
 %   if loader.code.file_list:
         public readonly string FileList = "${loader.code.file_list}";
         public readonly string[] FileArray = new string[] {
@@ -71,6 +73,18 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 
         public void Reload() {
             Clear();
+            LoadByCheck();
+        }
+        
+        public void Clear() {
+%   for code_index in loader.code.indexes:
+            ${code_index.camelname}Data.Clear();
+%   endfor
+            Loaded = false;
+        }
+
+        protected void LoadByCheck() {
+            if (Loaded) return;
 %   if loader.code.file_list:
             LoadByList(FileList);
 %   else:
@@ -78,12 +92,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
                 Load(FilePath);
             }
 %   endif
-        }
-        
-        public void Clear() {
-%   for code_index in loader.code.indexes:
-             ${code_index.camelname}Data.Clear();
-%   endfor
+            Loaded = true;
         }
 
         protected void LoadByList(string filelist) {
@@ -176,40 +185,22 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 %       elif len(code_index.fields) == 1:
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
-            if (ret != null)
+            if (ret != null || Loaded)
             {
                 return ret;
             }
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-            string file_path = ${"$\"" + code_line + "\""};
-            Load(file_path);
-%         else:
-            foreach (var path in FileArray)
-            {
-                Load(path);
-            }
-%         endif
+            LoadByCheck();
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
-            return ret ?? new ${code_index.camelname}ValueType();
+            return ret;
 %       else:
             ValueTuple<${code_index.get_cs_key_type_list()}> key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(key, out ret);
-            if (ret != null)
+            if (ret != null || Loaded)
             {
                 return ret;
             }
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-            string file_path = ${"$\"" + code_line + "\""};
-            Load(file_path);
-%         else:
-            foreach (var path in FileArray)
-            {
-                Load(path);
-            }
-%         endif
+            LoadByCheck();
             ${code_index.camelname}Data.TryGetValue(key, out ret);
 
 %         if code_index.sort_by:
@@ -223,7 +214,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             });
 %         endif
 
-            return ret ?? new ${code_index.camelname}ValueType();
+            return ret;
 %       endif
         }
 
@@ -237,18 +228,9 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 %       elif len(code_index.fields) == 1:
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
-            if (ret == null)
+            if (ret == null && !Loaded)
             {
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-                string file_path = ${"$\"" + code_line + "\""};
-            Load(file_path);
-%         else:
-            foreach (var path in FileArray)
-            {
-                Load(path);
-            }
-%         endif
+                LoadByCheck();
                 ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
             }
             list = ret;
@@ -256,18 +238,9 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             var key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(key, out ret);
-            if (ret == null)
+            if (ret == null && !Loaded)
             {
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-                string file_path = ${"$\"" + code_line + "\""};
-                Load(file_path);
-%         else:
-                foreach (var path in FileArray)
-                {
-                    Load(path);
-                }
-%         endif
+                LoadByCheck();
                 ${code_index.camelname}Data.TryGetValue(key, out ret);
             }
             list = ret;
@@ -288,40 +261,22 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 %       elif len(code_index.fields) == 1:
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
-            if (ret != null)
+            if (ret != null || Loaded)
             {
                 return ret;
             }
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-            string file_path = ${"$\"" + code_line + "\""};
-            Load(file_path);
-%         else:
-            foreach (var path in FileArray)
-            {
-                Load(path);
-            }
-%         endif
+            LoadByCheck();
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
             return ret;
 %       else:
             ValueTuple<${code_index.get_cs_key_type_list()}> key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(key, out ret);
-            if (ret != null)
+            if (ret != null || Loaded)
             {
                 return ret;
             }
-%         if loader.code.file_list and code_index.file_mapping:
-<%     code_line = code_index.get_cs_file_path() %>
-            string file_path = ${"$\"" + code_line + "\""};
-            Load(file_path);
-%         else:
-            foreach (var path in FileArray)
-            {
-                Load(path);
-            }
-%         endif
+            LoadByCheck();
             ${code_index.camelname}Data.TryGetValue(key, out ret);
             return ret;
 %       endif
