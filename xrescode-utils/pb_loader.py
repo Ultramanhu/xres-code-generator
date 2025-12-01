@@ -1322,6 +1322,12 @@ class PbMsgLoader:
 
         return ToCamelName(self.code.class_name)
 
+    def get_go_pb_unexported_name(self):
+        if self.code is None:
+            return ""
+
+        return "inner_{0}".format(ToCamelName(self.code.class_name))
+
 class PbFile:
     def __init__(self, db, pb_file, index_set):
         self.db = db
