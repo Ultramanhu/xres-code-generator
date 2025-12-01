@@ -92,6 +92,21 @@ ${pb_loader.CsNamespaceBegin(global_package)}
                 Load(FilePath);
             }
 %   endif
+%   for code_index in loader.code.indexes:
+%         if code_index.sort_by and code_index.is_list():
+            foreach (var Pair in ${code_index.camelname}Data)
+            {
+                Pair.Value.Sort((l, r) => {
+                    int Ret = 0;
+%           for sort_fd in code_index.sort_by:
+                    Ret = l.${ToCamelName(sort_fd.name.lower())}.CompareTo(r.${ToCamelName(sort_fd.name.lower())});
+                    if (Ret != 0) return Ret;
+%           endfor
+                    return Ret;
+                });
+            }
+%         endif
+%   endfor
             Loaded = true;
         }
 
@@ -202,17 +217,6 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             }
             LoadByCheck();
             ${code_index.camelname}Data.TryGetValue(key, out ret);
-
-%         if code_index.sort_by:
-            ret.Sort((l, r) => {
-                int Ret = 0;
-%           for sort_fd in code_index.sort_by:
-                Ret = l.${ToCamelName(sort_fd.name.lower())}.CompareTo(r.${ToCamelName(sort_fd.name.lower())});
-                if (Ret != 0) return Ret;
-%           endfor
-                return Ret;
-            });
-%         endif
 
             return ret;
 %       endif
