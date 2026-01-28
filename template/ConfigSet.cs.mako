@@ -16,6 +16,9 @@ using Google.Protobuf;
 ${pb_loader.CsNamespaceBegin(global_package)}
 
 % for loader in pb_msg.loaders:
+    using RowType = ${loader.get_cs_pb_inner_class_name()};
+    using RowListType = List<${loader.get_cs_pb_inner_class_name()}>;
+
 %   for code_index in loader.code.indexes:
 <%   value_type_name = "" %>
 ## %    // ------------------------- index: ${code_index.camelname} -------------------------
@@ -48,26 +51,26 @@ ${pb_loader.CsNamespaceBegin(global_package)}
 
         private static ${loader.get_cs_class_name()} _instance;
 
-        public static ${loader.get_cs_class_name()} Instance => _instance ??= new ${loader.get_cs_class_name()}();
+        public static ${loader.get_cs_class_name()} Instance => _instance ??= new();
 
         public bool Loaded { get; protected set; } = false;
 
 %   if loader.code.file_list:
         public readonly string FileList = "${loader.code.file_list}";
-        public readonly string[] FileArray = new string[] {
+        public readonly string[] FileArray = new[] {
 %     for one_file_path in loader.code.file_path:
             "${one_file_path}",
 %     endfor
         };
 %   else:
 %     if not isinstance(loader.code.file_path, str):
-        public readonly string[] FileArray = new string[] {
+        public readonly string[] FileArray = new[] {
 %       for one_file_path in loader.code.file_path:
             "${one_file_path}",
 %       endfor
         };
 %     else:
-        public readonly string[] FileArray = new string[] { "${loader.code.file_path}" };
+        public readonly string[] FileArray = new[] { "${loader.code.file_path}" };
 %     endif
 %   endif
 
@@ -77,6 +80,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
         }
         
         public void Clear() {
+            AllData.Clear();
 %   for code_index in loader.code.indexes:
             ${code_index.camelname}Data.Clear();
 %   endfor
@@ -135,8 +139,11 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             }
         }
 
-        protected void MergeData(${loader.get_cs_pb_inner_class_name()} itemInfo) {
+        public RowListType AllData { get; protected set; } = new();
+
+        protected void MergeData(RowType itemInfo) {
             if (itemInfo == null) return;
+            AllData.Add(itemInfo);
 %   for code_index in loader.code.indexes:
 
             do {
@@ -208,7 +215,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
             return ret;
 %       else:
-            ValueTuple<${code_index.get_cs_key_type_list()}> key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
+            var key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(key, out ret);
             if (ret != null || Loaded)
@@ -273,7 +280,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             ${code_index.camelname}Data.TryGetValue(${code_index.get_cs_key_params()}, out ret);
             return ret;
 %       else:
-            ValueTuple<${code_index.get_cs_key_type_list()}> key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
+            var key = new ValueTuple<${code_index.get_cs_key_type_list()}>(${code_index.get_cs_key_params()});
             ${code_index.camelname}ValueType ret = null;
             ${code_index.camelname}Data.TryGetValue(key, out ret);
             if (ret != null || Loaded)
@@ -290,7 +297,7 @@ ${pb_loader.CsNamespaceBegin(global_package)}
             return ${code_index.camelname}Data;
         }
 
-        protected ${code_index.camelname}ContainerType ${code_index.camelname}Data = new ${code_index.camelname}ContainerType();
+        protected ${code_index.camelname}ContainerType ${code_index.camelname}Data = new();
 
 %   endfor
     }
