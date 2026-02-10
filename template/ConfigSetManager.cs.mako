@@ -46,6 +46,10 @@ ${pb_loader.CsNamespaceBegin(global_package)}
         public void DefaultLogHandler(string log) {
         }
 
+        public static void HandleLog(string str) {
+            Instance.LogHandler?.Invoke(str);
+        }
+
         protected ConfigSetManager() {
             _loader = DefaultLoader;
             _logHandler = DefaultLogHandler;

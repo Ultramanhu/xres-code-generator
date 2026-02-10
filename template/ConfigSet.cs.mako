@@ -181,13 +181,12 @@ ${pb_loader.CsNamespaceBegin(global_package)}
                 if (!${code_index.camelname}Data.ContainsKey(key${code_index.camelname})) ${code_index.camelname}Data.Add(key${code_index.camelname}, new ${code_index.camelname}ValueType());
 %       else:
                 if (!${code_index.camelname}Data.ContainsKey(key${code_index.camelname})) ${code_index.camelname}Data.Add(key${code_index.camelname}, itemInfo);
+                else ConfigSetManager.HandleLog($"${loader.get_cs_class_name()} Key[{key${code_index.camelname}}] Duplicated!!");
 %       endif
 %     endif
 
 %     if code_index.is_list():
                 ${code_index.camelname}Data[key${code_index.camelname}].Add(itemInfo);
-%     else:
-                ${code_index.camelname}Data[key${code_index.camelname}] = itemInfo;
 %     endif
             }
             while (false);
